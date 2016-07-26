@@ -17,7 +17,6 @@
 package org.apache.commons.validator.routines;
 
 import java.io.Serializable;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -60,7 +59,7 @@ public class EmailValidator implements Serializable {
      * However, some providers certainly issue email addresses longer than this in practice. (such
      * as Google Docs, which uses very long reply-tos when notifying users of comments via email,
      * so that replies to those notifcations can be threaded back into the document)
-     * 
+     *
      */
     private static final Integer RFC_3696_MAX_USERNAME_LENGTH = 64;
 
@@ -249,5 +248,4 @@ public class EmailValidator implements Serializable {
         
         return USER_PATTERN.matcher(user).matches();
     }
-
 }

@@ -17,6 +17,7 @@
 package org.apache.commons.validator.routines;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,10 +51,22 @@ public class EmailValidator implements Serializable {
     private static final Pattern IP_DOMAIN_PATTERN = Pattern.compile(IP_DOMAIN_REGEX);
     private static final Pattern USER_PATTERN = Pattern.compile(USER_REGEX);
 
-    private static final int MAX_USERNAME_LEN = 64;
+	/**
+     * RFC 3696 states: "In addition to restrictions on syntax, there is a length limit on email
+     * addresses.  That limit is a maximum of 64 characters (octets) in the "local part" (before the
+     * "@") and a maximum of 255 characters (octets) in the domain part (after the "@") for a total
+     * length of 320 characters."
+     *
+     * However, some providers certainly issue email addresses longer than this in practice. (such
+     * as Google Docs, which uses very long reply-tos when notifying users of comments via email,
+     * so that replies to those notifcations can be threaded back into the document)
+     * 
+     */
+    private static final Integer RFC_3696_MAX_USERNAME_LENGTH = 64;
 
     private final boolean allowLocal;
     private final boolean allowTld;
+    private final boolean enforceMaxUsernameLength;
 
     /**
      * Singleton instance of this class, which
@@ -125,6 +138,21 @@ public class EmailValidator implements Serializable {
     }
 
     /**
+     * public constructor, as singleton implementation done above was simply not maintainable.
+     *
+     * @param allowLocal Should local addresses be considered valid?
+     * @param allowTld Should TLDs be allowed?
+     * @param enforceMaxUsernameLength Should max length of username (local-part) of email address be enforced?
+     */
+    public EmailValidator(boolean allowLocal, boolean allowTld, boolean enforceMaxUsernameLength) {
+        super();
+        this.allowLocal = allowLocal;
+        this.allowTld = allowTld;
+        this.enforceMaxUsernameLength = enforceMaxUsernameLength;
+    }
+
+
+    /**
      * Protected constructor for subclasses to use.
      *
      * @param allowLocal Should local addresses be considered valid?
@@ -134,6 +162,7 @@ public class EmailValidator implements Serializable {
         super();
         this.allowLocal = allowLocal;
         this.allowTld = allowTld;
+        this.enforceMaxUsernameLength = true;
     }
 
     /**
@@ -145,6 +174,7 @@ public class EmailValidator implements Serializable {
         super();
         this.allowLocal = allowLocal;
         this.allowTld = false;
+        this.enforceMaxUsernameLength = true;
     }
 
     /**
@@ -213,7 +243,7 @@ public class EmailValidator implements Serializable {
      */
     protected boolean isValidUser(String user) {
         
-        if (user == null || user.length() > MAX_USERNAME_LEN) {
+        if (user == null || (enforceMaxUsernameLength && user.length() > RFC_3696_MAX_USERNAME_LENGTH)) {
             return false;
         }
         
